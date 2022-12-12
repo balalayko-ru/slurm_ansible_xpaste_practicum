@@ -1,0 +1,63 @@
+---
+#- name: "Get ruby version" 
+#  ansible.builtin.shell: source /opt/rh/rh-ruby25/enable && ruby --version
+#  register: ruby_ver
+#
+#- name: "Show ruby version"
+#  ansible.builtin.debug:
+#    msg: "Ruby version: {{ ruby_ver.stdout }}"
+#
+- name: "Create app folder"
+  ansible.builtin.file:
+    path: "/app/"
+    owner: root
+    group: root
+    #mode: '0644'
+    mode: '0777' # Wrong but fix stylesheets and js folder
+    state: directory
+
+- name: "Copy app files to /app"
+  ansible.builtin.copy:
+    src: "files/xpaste_practicum/"
+    dest: "/app/"
+    owner: "root"
+    group: "root"
+    #mode: "0644"
+    mode: '0777' # Wrong but fix stylesheets and js folder
+
+# Start the app
+- name: "Install dependencies step 1"
+  ansible.builtin.shell: "source /opt/rh/rh-ruby25/enable && bundle config build.nokogiri --use-system-libraries"
+  args:
+    chdir: "/app/"
+
+# Fix 1
+- name: "Install libfix bundler"
+  ansible.builtin.shell: "source /opt/rh/rh-ruby25/enable && gem install bundler:1.16.2"
+  args:
+    chdir: "/app/"
+
+# Fix 2
+- name: "Install libfix nokogiri"
+  ansible.builtin.shell: "source /opt/rh/rh-ruby25/enable && gem install nokogiri:1.8.2"
+  args:
+    chdir: "/app/"
+
+- name: "Install app"
+  ansible.builtin.shell: "source /opt/rh/rh-ruby25/enable && bundle install --clean --no-cache --without development"
+  args:
+    chdir: "/app/"
+  ignore_errors: yes # Bad Dirty fix
+
+- name: "Create XPASTE service file"
+  template:
+    src: "service.j2"
+    dest: "/etc/systemd/system/xpaste.service" 
+    owner: root
+    group: root 
+    mode: 0664
+
+- name: "Start XPASTE service"
+  ansible.builtin.service:
+    name: xpaste
+    state: started

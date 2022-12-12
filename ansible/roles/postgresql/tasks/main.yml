@@ -1,0 +1,69 @@
+---
+- name: "Install Postgresql packages"
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: "latest"
+    update_cache: true
+  with_items:
+    - "postgresql"
+    - "postgresql-server"	# 9.2 is Default for Centos 7.9
+    - "postgresql-contrib"
+    - "python-psycopg2"		# For ansible postresql modules
+    - "postgresql-devel" 	# For Ruby
+
+- name: "Find out if PostgreSQL is initialized"
+  ansible.builtin.stat:
+    path: "/var/lib/pgsql/data/pg_hba.conf"
+  register: postgres_init_allready
+
+- name: "Initialize PostgreSQL"
+  ansible.builtin.shell: "/usr/bin/postgresql-setup initdb"
+  when: not postgres_init_allready.stat.exists
+
+- name: "Start and enable PostgreSQL"
+  ansible.builtin.service:
+    name: "postgresql"
+    state: "started"
+    enabled: true
+
+- name: "Create app database"
+  community.postgresql.postgresql_db:
+    state: present
+    name: "{{ DB_NAME }}"
+  become: true
+  become_user: postgres
+
+- name: "Create db user"
+  community.postgresql.postgresql_user:
+    state: present
+    name: "{{ DB_USER }}"
+    password: "{{ DB_PASSWORD }}"
+  become: true
+  become_user: postgres
+
+- name: "Grant db user access to app db"
+  community.general.postgresql_privs:
+    type: database
+    database: "{{ DB_NAME }}"
+    roles: "{{ DB_USER }}"
+    grant_option: no
+    privs: all
+  become: yes
+  become_user: postgres
+
+- name: "Allow md5 connection for the db user"
+  community.general.postgresql_pg_hba:
+    dest: "~/data/pg_hba.conf"
+    address: 127.0.0.1/32 #Fix
+    contype: host
+    databases: all
+    method: md5
+    users: "{{ DB_USER }}"
+    create: true
+  become: yes
+  become_user: postgres
+
+- name: "restart postgres"
+  ansible.builtin.service: 
+    name: "postgresql" 
+    state: "restarted"
