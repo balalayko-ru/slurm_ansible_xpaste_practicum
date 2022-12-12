@@ -1,37 +1,37 @@
 # slurm_ansible_xpaste_practicum
-### Создание директории для ssh ключей (из текущей папки):
+### РЎРѕР·РґР°РЅРёРµ РґРёСЂРµРєС‚РѕСЂРёРё РґР»СЏ ssh РєР»СЋС‡РµР№ (РёР· С‚РµРєСѓС‰РµР№ РїР°РїРєРё):
 ```
 mkdir files
 cd files 
 ```
-### Генерация ключа для проброса на сервера
+### Р“РµРЅРµСЂР°С†РёСЏ РєР»СЋС‡Р° РґР»СЏ РїСЂРѕР±СЂРѕСЃР° РЅР° СЃРµСЂРІРµСЂР°
 ```
 ssh-keygen vagrant_test
 ```
-### Запуск виртуальных серверов (из папки с Vargantfile)
+### Р—Р°РїСѓСЃРє РІРёСЂС‚СѓР°Р»СЊРЅС‹С… СЃРµСЂРІРµСЂРѕРІ (РёР· РїР°РїРєРё СЃ Vargantfile)
 ```
 vagrant up
 ```
-### Соединяемя с сервером с ansible: 
+### РЎРѕРµРґРёРЅСЏРµРјСЏ СЃ СЃРµСЂРІРµСЂРѕРј СЃ ansible:
 ```
 vagrant ssh controlnode
 ```
-### Копируем файлы с world-write директорию в локальную:
+### РљРѕРїРёСЂСѓРµРј С„Р°Р№Р»С‹ СЃ world-write РґРёСЂРµРєС‚РѕСЂРёСЋ РІ Р»РѕРєР°Р»СЊРЅСѓСЋ:
 ```
 mkdir ansible-internal
 cp -R ansible/* ansible-internal
 cd ansible-internal
 ```
-### Установка необходимых collection и rolse через ansible galaxy:
+### РЈСЃС‚Р°РЅРѕРІРєР° РЅРµРѕР±С…РѕРґРёРјС‹С… collection Рё rolse С‡РµСЂРµР· ansible galaxy:
 ```
 ansible-galaxy collection install -r requirements.yml
 ansible-galaxy role install -r requirements.yml
 ```
-### Запуск playbook
+### Р—Р°РїСѓСЃРє playbook
 ```
 ansible-playbook playbook.yml
 ```
-### Проверяем результат
+### РџСЂРѕРІРµСЂСЏРµРј СЂРµР·СѓР»СЊС‚Р°С‚
 ```
 http://192.168.50.3/
 ```
